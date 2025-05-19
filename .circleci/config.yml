@@ -132,7 +132,7 @@ workflows:
     jobs:
       # Validation job that runs on all branches and PRs
       - validate:
-          context: datadog
+          context: Datadog
 
       # Development environment deployment
       - deploy-dev:
@@ -141,7 +141,7 @@ workflows:
           filters:
             branches:
               only: dev
-          context: datadog
+          context: Datadog
 
       # QA environment deployment
       - deploy-qa:
@@ -150,14 +150,14 @@ workflows:
           filters:
             branches:
               only: qa
-          context: datadog
+          context: Datadog
 
       # Production environment deployment
       - hold-prod:
           filters:
             branches:
               only: main
-          context: datadog
+          context: Datadog
       - deploy-prod:
           requires:
             - validate
@@ -165,4 +165,4 @@ workflows:
           filters:
             branches:
               only: main
-          context: datadog＀
+          context: Datadog＀
