@@ -31,6 +31,18 @@ commands:
             echo "aws_access_key_id = ${AWS_ACCESS_KEY_ID}" >> ~/.aws/credentials
             echo "aws_secret_access_key = ${AWS_SECRET_ACCESS_KEY}" >> ~/.aws/credentials
 
+  setup-ssh-key:
+    description: "Configure SSH private key for Ansible"
+    steps:
+      - run:
+          name: Setup SSH private key
+          command: |
+            mkdir -p ~/.ssh
+            echo "${ANSIBLE_PRIVATE_KEY}" > ~/.ssh/datadog.pem
+            chmod 600 ~/.ssh/datadog.pem
+            echo "StrictHostKeyChecking no" >> ~/.ssh/config
+            export ANSIBLE_PRIVATE_KEY_FILE=~/.ssh/datadog.pem
+
   deploy-datadog:
     description: "Deploy Datadog agent to specified environment"
     parameters:
@@ -47,6 +59,7 @@ commands:
             pip install ansible boto3 botocore
             ansible-galaxy collection install amazon.aws
       - setup-aws-credentials
+      - setup-ssh-key
       - run:
           name: Deploy Datadog agent
           command: |
@@ -170,4 +183,4 @@ workflows:
             # Run on all PRs
             tags:
               only: /.*/
-          context: datadog-deployment
+          context: datadog-deploymentĀ
