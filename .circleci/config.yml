@@ -58,6 +58,10 @@ commands:
             pip install ansible boto3 botocore
             ansible-galaxy collection install amazon.aws
       - aws-cli/setup
+      - run:
+          name: Show AWS env
+          command: |
+            env | grep AWS
       - setup-ssh-key
       - run:
           name: Deploy Datadog agent
