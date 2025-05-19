@@ -14,7 +14,7 @@ commands:
             pip install ansible ansible-lint boto3 botocore
             ansible-galaxy collection install amazon.aws
       - aws-cli/setup:
-        profile_name: default
+         profile_name: default
       - run:
           name: Validate playbook syntax
           command: ansible-playbook playbooks/deploy_datadog.yml --syntax-check -e "datadog_env=dev"
@@ -26,7 +26,7 @@ commands:
     description: "Configure AWS credentials"
     steps:
       - aws-cli/setup:
-        profile_name: default
+         profile_name: default
 
   setup-ssh-key:
     description: "Configure SSH private key for Ansible"
