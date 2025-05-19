@@ -13,10 +13,7 @@ commands:
           command: |
             pip install ansible ansible-lint boto3 botocore
             ansible-galaxy collection install amazon.aws
-      - aws-cli/setup:
-          aws-access-key-id: AWS_ACCESS_KEY_ID
-          aws-secret-access-key: AWS_SECRET_ACCESS_KEY
-          aws-region: AWS_DEFAULT_REGION
+      - aws-cli/setup
       - run:
           name: Validate playbook syntax
           command: ansible-playbook playbooks/deploy_datadog.yml --syntax-check -e "datadog_env=dev"
