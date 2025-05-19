@@ -136,7 +136,7 @@ workflows:
     jobs:
       # Validation job that runs on all branches and PRs
       - validate:
-          context: datadog
+          context: Datadog
 
       # Development environment deployment
       - deploy-dev:
