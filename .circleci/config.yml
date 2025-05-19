@@ -83,6 +83,10 @@ jobs:
       - checkout
       - validate-datadog-config
 
+  hold-prod:
+    type: approval
+    description: "Manual approval required for production deployment"
+
   deploy-dev:
     docker:
       - image: cimg/python:3.9
@@ -159,9 +163,7 @@ workflows:
           context: datadog-deployment
 
       # Production environment deployment
-      - deploy-prod:
-          requires:
-            - validate
+      - hold-prod:
           filters:
             # Only run on main branch, not on PRs
             branches:
@@ -170,7 +172,18 @@ workflows:
             tags:
               ignore: /.*/
           context: datadog-deployment
-          approval: true  # Require manual approval for production deployment
+      - deploy-prod:
+          requires:
+            - validate
+            - hold-prod
+          filters:
+            # Only run on main branch, not on PRs
+            branches:
+              only: main
+            # Don't run on tags
+            tags:
+              ignore: /.*/
+          context: datadog-deployment
 
   # Separate workflow for PR validation
   pr-validation:
@@ -183,4 +196,4 @@ workflows:
             # Run on all PRs
             tags:
               only: /.*/
-          context: datadog-deploymentĀ
+          context: datadog-deployment
