@@ -137,9 +137,9 @@ workflows:
       - deploy-dev:
           requires:
             - validate
-          filters:
-            branches:
-              only: dev
+          # filters:
+          #   branches:
+          #     only: dev
           context: datadog
 
       # QA environment deployment
