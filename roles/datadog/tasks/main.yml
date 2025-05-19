@@ -1,0 +1,11 @@
+---
+# Main tasks file for Datadog role
+# This file handles the inclusion of platform-specific tasks
+
+- name: Include Linux tasks
+  ansible.builtin.include_tasks: linux.yml
+  when: ansible_os_family in ['Debian', 'RedHat']
+
+- name: Include Windows tasks
+  ansible.builtin.include_tasks: windows.yml
+  when: ansible_os_family == 'Windows' 

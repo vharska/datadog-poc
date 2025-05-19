@@ -1,0 +1,35 @@
+---
+# Production environment specific settings
+datadog_env: "prod"
+datadog_checks:
+  process:
+    init_config:
+    instances:
+      - name: ssh
+        search_string: ['ssh', 'sshd']
+        exact_match: false
+  disk:
+    init_config:
+    instances:
+      - use_mount: true
+        excluded_filesystems:
+          - tmpfs
+          - devtmpfs
+        excluded_mountpoint_re: ^(/dev|/proc|/sys|/run)($|/)
+        excluded_disks:
+          - /dev/sda1
+
+# Additional prod environment tags
+datadog_extra_tags:
+  - "environment:prod"
+  - "tier:production"
+
+# Basic log collection settings
+datadog_logs_enabled: true
+datadog_logs_config:
+  - type: file
+    path: "/var/log/datadog/*.log"
+    service: "datadog-agent"
+    source: "datadog"
+    tags:
+      - "env:prod"

@@ -1,0 +1,173 @@
+version: 2.1
+
+# Define reusable commands
+commands:
+  validate-datadog-config:
+    description: "Validate Datadog configuration and playbook"
+    steps:
+      - run:
+          name: Install requirements
+          command: |
+            pip install ansible ansible-lint boto3 botocore
+            ansible-galaxy collection install amazon.aws
+      - run:
+          name: Run ansible-lint
+          command: ansible-lint playbooks/deploy_datadog.yml
+      - run:
+          name: Validate playbook syntax
+          command: ansible-playbook playbooks/deploy_datadog.yml --syntax-check
+      - run:
+          name: Validate inventory
+          command: ansible-inventory --graph
+
+  setup-aws-credentials:
+    description: "Configure AWS credentials"
+    steps:
+      - run:
+          name: Configure AWS credentials
+          command: |
+            mkdir -p ~/.aws
+            echo "[default]" > ~/.aws/credentials
+            echo "aws_access_key_id = ${AWS_ACCESS_KEY_ID}" >> ~/.aws/credentials
+            echo "aws_secret_access_key = ${AWS_SECRET_ACCESS_KEY}" >> ~/.aws/credentials
+
+  deploy-datadog:
+    description: "Deploy Datadog agent to specified environment"
+    parameters:
+      environment:
+        type: string
+        default: "dev"
+      datadog_api_key:
+        type: string
+        default: ""
+    steps:
+      - run:
+          name: Install requirements
+          command: |
+            pip install ansible boto3 botocore
+            ansible-galaxy collection install amazon.aws
+      - setup-aws-credentials
+      - run:
+          name: Deploy Datadog agent
+          command: |
+            # First run with --check to validate changes
+            ansible-playbook playbooks/deploy_datadog.yml \
+              -e "datadog_env=<< parameters.environment >>" \
+              -e "datadog_api_key=<< parameters.datadog_api_key >>" \
+              --check
+            # Actual deployment
+            ansible-playbook playbooks/deploy_datadog.yml \
+              -e "datadog_env=<< parameters.environment >>" \
+              -e "datadog_api_key=<< parameters.datadog_api_key >>"
+          no_output_timeout: 30m
+
+# Define jobs
+jobs:
+  validate:
+    docker:
+      - image: cimg/python:3.9
+    steps:
+      - checkout
+      - validate-datadog-config
+
+  deploy-dev:
+    docker:
+      - image: cimg/python:3.9
+    environment:
+      DATADOG_API_KEY: ${DD_API_KEY_DEV}
+    steps:
+      - checkout
+      - deploy-datadog:
+          environment: "dev"
+          datadog_api_key: ${DD_API_KEY_DEV}
+
+  deploy-qa:
+    docker:
+      - image: cimg/python:3.9
+    environment:
+      DATADOG_API_KEY: ${DD_API_KEY_QA}
+    steps:
+      - checkout
+      - deploy-datadog:
+          environment: "qa"
+          datadog_api_key: ${DD_API_KEY_QA}
+
+  deploy-prod:
+    docker:
+      - image: cimg/python:3.9
+    environment:
+      DATADOG_API_KEY: ${DD_API_KEY_PROD}
+    steps:
+      - checkout
+      - deploy-datadog:
+          environment: "prod"
+          datadog_api_key: ${DD_API_KEY_PROD}
+
+# Define workflows
+workflows:
+  version: 2
+  datadog-deployment:
+    jobs:
+      # Always run validation on PRs
+      - validate:
+          filters:
+            # Run on all PRs
+            branches:
+              ignore: /.*/
+            # Run on all PRs
+            tags:
+              only: /.*/
+          context: datadog-deployment
+
+      # Development environment deployment
+      - deploy-dev:
+          requires:
+            - validate
+          filters:
+            # Only run on dev branch, not on PRs
+            branches:
+              only: dev
+            # Don't run on tags
+            tags:
+              ignore: /.*/
+          context: datadog-deployment
+
+      # QA environment deployment
+      - deploy-qa:
+          requires:
+            - validate
+          filters:
+            # Only run on qa branch, not on PRs
+            branches:
+              only: qa
+            # Don't run on tags
+            tags:
+              ignore: /.*/
+          context: datadog-deployment
+
+      # Production environment deployment
+      - deploy-prod:
+          requires:
+            - validate
+          filters:
+            # Only run on main branch, not on PRs
+            branches:
+              only: main
+            # Don't run on tags
+            tags:
+              ignore: /.*/
+          context: datadog-deployment
+          approval: true  # Require manual approval for production deployment
+
+  # Separate workflow for PR validation
+  pr-validation:
+    jobs:
+      - validate:
+          filters:
+            # Only run on PRs
+            branches:
+              ignore: /.*/
+            # Run on all PRs
+            tags:
+              only: /.*/
+          context: datadog-deployment

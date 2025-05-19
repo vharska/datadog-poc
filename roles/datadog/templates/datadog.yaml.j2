@@ -1,0 +1,41 @@
+---
+# Main Datadog Agent configuration
+# Managed by Ansible - DO NOT EDIT MANUALLY
+
+api_key: {{ datadog_api_key }}
+site: us5.datadoghq.com
+
+# Tags configuration
+tags:
+  - "env:{{ datadog_env }}"
+  - "ansible_managed:true"
+{% if datadog_extra_tags is defined and datadog_extra_tags %}
+{% for tag in datadog_extra_tags %}
+  - {{ tag | quote }}
+{% endfor %}
+{% endif %}
+
+# Logs configuration
+logs_config:
+{% if datadog_logs_enabled %}
+  enabled: true
+  logs_dd_url: https://http-intake.logs.{{ datadog_site }}
+  processing_enabled: true
+{% if datadog_logs_config is defined and datadog_logs_config %}
+  logs:
+{% for log in datadog_logs_config %}
+    - type: {{ log.type | quote }}
+      path: {{ log.path | quote }}
+      service: {{ log.service | quote }}
+      source: {{ log.source | quote }}
+{% if log.tags is defined %}
+      tags:
+{% for tag in log.tags %}
+        - {{ tag | quote }}
+{% endfor %}
+{% endif %}
+{% endfor %}
+{% endif %}
+{% else %}
+  enabled: false
+{% endif %}

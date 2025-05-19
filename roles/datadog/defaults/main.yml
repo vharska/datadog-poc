@@ -1,0 +1,41 @@
+---
+# Default variables for Datadog Agent role
+
+# Datadog Agent version
+datadog_agent_version: "7.45.0"
+
+# Datadog site (datadoghq.com, datadoghq.eu, etc.)
+datadog_site: "datadoghq.com"
+
+# Basic agent configuration
+datadog_config:
+  apm_config:
+    enabled: false
+  logs_config:
+    enabled: false
+  process_config:
+    enabled: false
+  use_dogstatsd: true
+  dogstatsd_port: 8125
+  tags: []
+
+# Default checks to enable
+datadog_checks:
+  process:
+    init_config:
+    instances:
+      - name: ssh
+        search_string: ['ssh', 'sshd']
+        exact_match: false
+
+# Default log collection settings
+datadog_logs_enabled: true
+datadog_logs_config:
+  - type: file
+    path: "/var/log/datadog/*.log"
+    service: "datadog-agent"
+    source: "datadog"
+    tags: []
+
+# Default environment tags
+datadog_extra_tags: []

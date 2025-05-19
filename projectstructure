@@ -1,0 +1,23 @@
+.
+├── ansible.cfg
+├── inventory
+│   └── aws_ec2.yml
+├── group_vars
+│   ├── all.yml
+│   ├── dev.yml
+│   ├── qa.yml
+│   └── prod.yml
+├── roles
+│   └── datadog
+│       ├── defaults
+│       │   └── main.yml
+│       ├── handlers
+│       │   └── main.yml
+│       ├── tasks
+│       │   └── main.yml
+│       └── templates
+│           └── datadog.yaml.j2
+├── playbooks
+│   └── deploy_datadog.yml
+└── .circleci
+    └── config.yml

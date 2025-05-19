@@ -1,0 +1,21 @@
+---
+# Handlers for Datadog Agent
+
+- name: Restart Datadog Agent
+  service:
+    name: datadog-agent
+    state: restarted
+  listen: "restart_datadog_agent"
+  when: not ansible_os_family == 'Windows'
+
+- name: Restart Datadog Agent Windows
+  win_service:
+    name: datadogagent
+    state: restarted
+  listen: "restart_datadog_agent_windows"
+  when: ansible_os_family == 'Windows'
+
+- name: Reload Datadog Agent
+  service:
+    name: datadog-agent
+    state: reloaded

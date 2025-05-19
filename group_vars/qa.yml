@@ -1,0 +1,25 @@
+---
+# QA environment specific settings
+datadog_env: "qa"
+datadog_checks:
+  process:
+    init_config:
+    instances:
+      - name: ssh
+        search_string: ['ssh', 'sshd']
+        exact_match: false
+
+# Additional qa environment tags
+datadog_extra_tags:
+  - "environment:qa"
+  - "tier:testing"
+
+# Basic log collection settings
+datadog_logs_enabled: true
+datadog_logs_config:
+  - type: file
+    path: "/var/log/datadog/*.log"
+    service: "datadog-agent"
+    source: "datadog"
+    tags:
+      - "env:qa"

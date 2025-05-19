@@ -1,0 +1,38 @@
+---
+# Playbook to deploy Datadog agent to environments based on inventory groups
+
+- name: Validate Datadog Configuration
+  hosts: localhost
+  gather_facts: no
+  tasks:
+    - name: Check for required variables
+      assert:
+        that:
+          - datadog_api_key is defined and datadog_api_key != ""
+          - datadog_site is defined and datadog_site != ""
+        msg: "datadog_api_key and datadog_site must be defined"
+      when: inventory_hostname == 'localhost'
+
+    - name: Validate environment variables
+      assert:
+        that:
+          - datadog_env is defined and datadog_env in ['dev', 'qa', 'prod']
+        msg: "datadog_env must be defined and must be one of: dev, qa, prod"
+      when: inventory_hostname == 'localhost'
+
+- name: Deploy Datadog Agent
+  hosts: "{{ datadog_env }}"
+  become: yes
+  gather_facts: yes
+  vars_files:
+    - "group_vars/{{ datadog_env }}.yml"
+  tasks:
+    - name: Verify OS is supported
+      fail:
+        msg: "Unsupported operating system: {{ ansible_os_family }}"
+      when: ansible_os_family not in ['Debian', 'RedHat', 'Windows']
+
+    - name: Include Datadog role
+      include_role:
+        name: datadog
+      when: ansible_os_family in ['Debian', 'RedHat', 'Windows']

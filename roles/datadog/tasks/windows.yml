@@ -1,0 +1,67 @@
+---
+# Windows-specific Datadog Agent installation and configuration tasks
+
+- name: Set Windows-specific variables
+  set_fact:
+    datadog_api_key: "{{ lookup('env', 'DATADOG_API_KEY') }}"
+    datadog_site: "{{ datadog_site | default('datadoghq.com') }}"
+    datadog_agent_version: "{{ datadog_agent_version | default(omit) }}"
+
+- name: Check if Datadog Agent is already installed on Windows
+  win_stat:
+    path: C:\ProgramData\Datadog\datadog.yaml
+  register: datadog_agent_config
+
+- name: Install Datadog Agent on Windows
+  when: not datadog_agent_config.stat.exists
+  block:
+    - name: Download Datadog Agent installer
+      win_get_url:
+        url: "https://ddagent-windows-stable.s3.amazonaws.com/ddagent-cli-latest.msi"
+        dest: "C:\\Windows\\Temp\\ddagent-cli.msi"
+
+    - name: Install Datadog Agent MSI
+      win_package:
+        path: "C:\\Windows\\Temp\\ddagent-cli.msi"
+        arguments: '/qn APIKEY="{{ datadog_api_key }}" SITE="{{ datadog_site }}"'
+        state: present
+        creates_path: "C:\\Program Files\\Datadog\\Datadog Agent\\bin\\agent.exe"
+      register: datadog_agent_install_windows
+
+- name: Configure Datadog Agent on Windows
+  block:
+    - name: Generate Datadog main configuration file
+      win_template:
+        src: datadog_windows.yaml.j2
+        dest: "C:\\ProgramData\\Datadog\\datadog.yaml"
+      notify: Restart Datadog Agent Windows
+
+    - name: Configure integrations on Windows
+      when: datadog_checks is defined and datadog_checks|length > 0
+      block:
+        - name: Create integration configuration directories
+          win_file:
+            path: "C:\\ProgramData\\Datadog\\conf.d\\{{ item.key }}.d"
+            state: directory
+          loop: "{{ datadog_checks | dict2items }}"
+
+        - name: Generate integration configuration files
+          win_copy:
+            content: "{{ item.value | to_nice_yaml }}"
+            dest: "C:\\ProgramData\\Datadog\\conf.d\\{{ item.key }}.d\\conf.yaml"
+          loop: "{{ datadog_checks | dict2items }}"
+          notify: Restart Datadog Agent Windows
+
+- name: Start and enable Datadog Agent service on Windows
+  win_service:
+    name: datadogagent
+    state: started
+    start_mode: auto
+
+- name: Verify Datadog Agent is running on Windows
+  win_shell: '& "C:\Program Files\Datadog\Datadog Agent\bin\agent.exe" status'
+  register: agent_status_windows
+  changed_when: false
+  failed_when: "'UNKNOWN' in agent_status_windows.stdout or 'ERROR' in agent_status_windows.stdout"
+  retries: 3
+  delay: 10 

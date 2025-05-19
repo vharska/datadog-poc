@@ -1,0 +1,110 @@
+---
+# Linux-specific Datadog Agent installation and configuration tasks
+
+- name: Set Linux-specific variables
+  set_fact:
+    datadog_api_key: "{{ lookup('env', 'DATADOG_API_KEY') }}"
+    datadog_site: "{{ datadog_site | default('datadoghq.com') }}"
+    datadog_agent_version: "{{ datadog_agent_version | default(omit) }}"
+
+- name: Check if Datadog Agent is already installed on Linux
+  stat:
+    path: /etc/datadog-agent/datadog.yaml
+  register: datadog_agent_config
+
+- name: Install Datadog Agent on Linux
+  when: not datadog_agent_config.stat.exists
+  block:
+    - name: Remove minimal packages on Amazon Linux 2023
+      package:
+        name: 
+          - curl-minimal
+          - gnupg2-minimal
+        state: absent
+      when: ansible_distribution == 'Amazon' and ansible_distribution_major_version == '2023'
+
+    - name: Install required packages for Debian-based systems
+      package:
+        name: 
+          - curl
+          - gnupg
+          - apt-transport-https
+        state: present
+        update_cache: yes
+      when: ansible_os_family == 'Debian'
+
+    - name: Install required packages for RHEL-based systems
+      package:
+        name: 
+          - curl
+          - gnupg2
+        state: present
+      when: ansible_os_family == 'RedHat'
+
+    - name: Set Datadog environment variables
+      set_fact:
+        dd_env_vars:
+          DD_API_KEY: "{{ datadog_api_key }}"
+          DD_SITE: "us5.datadoghq.com"
+
+    - name: Install Datadog Agent using installer
+      shell: bash -c "$(curl -L https://install.datadoghq.com/scripts/install_script_agent7.sh)"
+      args:
+        executable: /bin/bash
+      register: datadog_agent_install_linux
+      environment: "{{ dd_env_vars }}"
+
+- name: Configure Datadog Agent on Linux
+  block:
+    - name: Create Datadog configuration directory
+      file:
+        path: /etc/datadog-agent/conf.d/
+        state: directory
+        mode: '0755'
+        owner: dd-agent
+        group: dd-agent
+
+    - name: Generate Datadog main configuration file
+      template:
+        src: datadog.yaml.j2
+        dest: /etc/datadog-agent/datadog.yaml
+        owner: dd-agent
+        group: dd-agent
+        mode: '0640'
+      notify: Restart Datadog Agent
+
+    - name: Configure integrations on Linux
+      when: datadog_checks is defined and datadog_checks|length > 0
+      block:
+        - name: Create integration configuration directories
+          file:
+            path: "/etc/datadog-agent/conf.d/{{ item.key }}.d"
+            state: directory
+            owner: dd-agent
+            group: dd-agent
+            mode: '0755'
+          loop: "{{ datadog_checks | dict2items }}"
+
+        - name: Generate integration configuration files
+          copy:
+            content: "{{ item.value | to_nice_yaml }}"
+            dest: "/etc/datadog-agent/conf.d/{{ item.key }}.d/conf.yaml"
+            owner: dd-agent
+            group: dd-agent
+            mode: '0640'
+          loop: "{{ datadog_checks | dict2items }}"
+          notify: Restart Datadog Agent
+
+- name: Start and enable Datadog Agent service on Linux
+  service:
+    name: datadog-agent
+    state: started
+    enabled: yes
+
+- name: Verify Datadog Agent is running on Linux
+  command: datadog-agent status
+  register: agent_status_linux
+  changed_when: false
+  failed_when: "'UNKNOWN' in agent_status_linux.stdout or 'ERROR' in agent_status_linux.stdout"
+  retries: 3
+  delay: 10 
