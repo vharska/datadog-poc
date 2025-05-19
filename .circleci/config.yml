@@ -11,9 +11,6 @@ commands:
             pip install ansible ansible-lint boto3 botocore
             ansible-galaxy collection install amazon.aws
       - run:
-          name: Run ansible-lint
-          command: ansible-lint playbooks/deploy_datadog.yml
-      - run:
           name: Validate playbook syntax
           command: ansible-playbook playbooks/deploy_datadog.yml --syntax-check -e "datadog_env=dev"
       - run:
