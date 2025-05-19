@@ -82,7 +82,4 @@ ansible-playbook playbooks/deploy_datadog.yml --limit dev --check
 ansible-playbook playbooks/deploy_datadog.yml --limit dev
 This implementation automatically configures the Datadog agent with appropriate settings for each environment, collects logs, and sets up various integrations based on the environment.
 
-# datadog-poc
-# datadog-poc
-# datadog-poc
-# datadog-poc
+
