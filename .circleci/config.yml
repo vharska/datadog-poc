@@ -143,25 +143,25 @@ workflows:
           context: datadog
 
       # QA environment deployment
-      - deploy-qa:
-          requires:
-            - validate
-          filters:
-            branches:
-              only: qa
-          context: datadog
+      # - deploy-qa:
+      #     requires:
+      #       - validate
+      #     filters:
+      #       branches:
+      #         only: qa
+      #     context: datadog
 
-      # Production environment deployment
-      - hold-prod:
-          filters:
-            branches:
-              only: main
-          context: datadog
-      - deploy-prod:
-          requires:
-            - validate
-            - hold-prod
-          filters:
-            branches:
-              only: main
-          context: datadog＀
+      # # Production environment deployment
+      # - hold-prod:
+      #     filters:
+      #       branches:
+      #         only: main
+      #     context: datadog
+      # - deploy-prod:
+      #     requires:
+      #       - validate
+      #       - hold-prod
+      #     filters:
+      #       branches:
+      #         only: main
+      #     context: datadog＀
