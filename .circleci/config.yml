@@ -52,6 +52,9 @@ commands:
       datadog_api_key:
         type: string
         default: ""
+      datadog_site:
+        type: string
+        default: "datadoghq.com"
     steps:
       - run:
           name: Install requirements
@@ -67,11 +70,13 @@ commands:
             ansible-playbook playbooks/deploy_datadog.yml \
               -e "datadog_env=<< parameters.environment >>" \
               -e "datadog_api_key=<< parameters.datadog_api_key >>" \
+              -e "datadog_site=<< parameters.datadog_site >>" \
               --check
             # Actual deployment
             ansible-playbook playbooks/deploy_datadog.yml \
               -e "datadog_env=<< parameters.environment >>" \
-              -e "datadog_api_key=<< parameters.datadog_api_key >>"
+              -e "datadog_api_key=<< parameters.datadog_api_key >>" \
+              -e "datadog_site=<< parameters.datadog_site >>"
           no_output_timeout: 30m
 
 # Define jobs
@@ -91,39 +96,42 @@ jobs:
     docker:
       - image: cimg/python:3.9
     environment:
-      DATADOG_API_KEY: ${DD_API_KEY_DEV}
+      DD_API_KEY_DEV: ${DD_API_KEY_DEV}
     steps:
       - checkout
       - deploy-datadog:
           environment: "dev"
           datadog_api_key: ${DD_API_KEY_DEV}
+          datadog_site: "datadoghq.com"
 
   deploy-qa:
     docker:
       - image: cimg/python:3.9
     environment:
-      DATADOG_API_KEY: ${DD_API_KEY_QA}
+      DD_API_KEY_QA: ${DD_API_KEY_QA}
     steps:
       - checkout
       - deploy-datadog:
           environment: "qa"
           datadog_api_key: ${DD_API_KEY_QA}
+          datadog_site: "datadoghq.com"
 
   deploy-prod:
     docker:
       - image: cimg/python:3.9
     environment:
-      DATADOG_API_KEY: ${DD_API_KEY_PROD}
+      DD_API_KEY_PROD: ${DD_API_KEY_PROD}
     steps:
       - checkout
       - deploy-datadog:
           environment: "prod"
           datadog_api_key: ${DD_API_KEY_PROD}
+          datadog_site: "datadoghq.com"
 
 # Define workflows
 workflows:
   version: 2
-  datadog:
+  datadog-deployment:
     jobs:
       # Always run validation on PRs
       - validate:
