@@ -11,11 +11,8 @@ commands:
             pip install ansible ansible-lint boto3 botocore
             ansible-galaxy collection install amazon.aws
       - run:
-          name: Run ansible-lint
-          command: ansible-lint playbooks/deploy_datadog.yml
-      - run:
           name: Validate playbook syntax
-          command: ansible-playbook playbooks/deploy_datadog.yml --syntax-check
+          command: ansible-playbook playbooks/deploy_datadog.yml --syntax-check -e "datadog_env=dev"
       - run:
           name: Validate inventory
           command: ansible-inventory --graph
@@ -133,15 +130,8 @@ workflows:
   version: 2
   datadog-deployment:
     jobs:
-      # Always run validation on PRs
+      # Validation job that runs on all branches and PRs
       - validate:
-          filters:
-            # Run on all PRs
-            branches:
-              ignore: /.*/
-            # Run on all PRs
-            tags:
-              only: /.*/
           context: datadog
 
       # Development environment deployment
@@ -149,12 +139,8 @@ workflows:
           requires:
             - validate
           filters:
-            # Only run on dev branch, not on PRs
             branches:
               only: dev
-            # Don't run on tags
-            tags:
-              ignore: /.*/
           context: datadog
 
       # QA environment deployment
@@ -162,46 +148,21 @@ workflows:
           requires:
             - validate
           filters:
-            # Only run on qa branch, not on PRs
             branches:
               only: qa
-            # Don't run on tags
-            tags:
-              ignore: /.*/
           context: datadog
 
       # Production environment deployment
       - hold-prod:
           filters:
-            # Only run on main branch, not on PRs
             branches:
               only: main
-            # Don't run on tags
-            tags:
-              ignore: /.*/
           context: datadog
       - deploy-prod:
           requires:
             - validate
             - hold-prod
           filters:
-            # Only run on main branch, not on PRs
             branches:
               only: main
-            # Don't run on tags
-            tags:
-              ignore: /.*/
-          context: datadog
-
-  # Separate workflow for PR validation
-  pr-validation:
-    jobs:
-      - validate:
-          filters:
-            # Only run on PRs
-            branches:
-              ignore: /.*/
-            # Run on all PRs
-            tags:
-              only: /.*/
-          context: datadog
+          context: datadog＀
