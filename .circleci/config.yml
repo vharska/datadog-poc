@@ -57,8 +57,7 @@ commands:
           command: |
             pip install ansible boto3 botocore
             ansible-galaxy collection install amazon.aws
-      - aws-cli/setup:
-          AWS_DEFAULT_REGION: us-east-1
+      - aws-cli/setup
       - setup-ssh-key
       - run:
           name: Deploy Datadog agent
