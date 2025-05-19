@@ -15,7 +15,7 @@ commands:
           command: ansible-lint playbooks/deploy_datadog.yml
       - run:
           name: Validate playbook syntax
-          command: ansible-playbook playbooks/deploy_datadog.yml --syntax-check
+          command: ansible-playbook playbooks/deploy_datadog.yml --syntax-check -e "datadog_env=dev"
       - run:
           name: Validate inventory
           command: ansible-inventory --graph
@@ -168,4 +168,4 @@ workflows:
           filters:
             branches:
               only: main
-          context: datadog
+          context: datadog＀
