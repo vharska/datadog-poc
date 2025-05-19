@@ -123,7 +123,7 @@ jobs:
 # Define workflows
 workflows:
   version: 2
-  datadog-deployment:
+  datadog:
     jobs:
       # Always run validation on PRs
       - validate:
@@ -134,7 +134,7 @@ workflows:
             # Run on all PRs
             tags:
               only: /.*/
-          context: datadog-deployment
+          context: datadog
 
       # Development environment deployment
       - deploy-dev:
@@ -147,7 +147,7 @@ workflows:
             # Don't run on tags
             tags:
               ignore: /.*/
-          context: datadog-deployment
+          context: datadog
 
       # QA environment deployment
       - deploy-qa:
@@ -160,7 +160,7 @@ workflows:
             # Don't run on tags
             tags:
               ignore: /.*/
-          context: datadog-deployment
+          context: datadog
 
       # Production environment deployment
       - hold-prod:
@@ -171,7 +171,7 @@ workflows:
             # Don't run on tags
             tags:
               ignore: /.*/
-          context: datadog-deployment
+          context: datadog
       - deploy-prod:
           requires:
             - validate
@@ -183,7 +183,7 @@ workflows:
             # Don't run on tags
             tags:
               ignore: /.*/
-          context: datadog-deployment
+          context: datadog
 
   # Separate workflow for PR validation
   pr-validation:
@@ -196,4 +196,4 @@ workflows:
             # Run on all PRs
             tags:
               only: /.*/
-          context: datadog-deployment
+          context: datadog
