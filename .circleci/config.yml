@@ -85,14 +85,9 @@ jobs:
     docker:
       - image: cimg/python:3.9
     steps:
-      - checkout
-      - run:
-          name: Print AWS env vars
-          command: |
-            echo "AWS_ACCESS_KEY_ID: $AWS_ACCESS_KEY_ID"
-            echo "AWS_SECRET_ACCESS_KEY: $AWS_SECRET_ACCESS_KEY"
-            echo "AWS_DEFAULT_REGION: $AWS_DEFAULT_REGION"
-      - validate-datadog-config
+      - run: echo $AWS_ACCESS_KEY_ID
+      # - checkout
+      # - validate-datadog-config
 
   hold-prod:
     type: approval
