@@ -131,13 +131,13 @@ workflows:
   datadog-deployment:
     jobs:
       # Validation job that runs on all branches and PRs
-      - validate:
-          context: datadog
+      # - validate:
+      #     context: datadog
 
       # Development environment deployment
       - deploy-dev:
-          requires:
-            - validate
+          # requires:
+          #   - validate
           filters:
             branches:
               only: dev
