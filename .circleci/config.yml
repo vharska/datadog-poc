@@ -27,18 +27,6 @@ commands:
   #     - aws-cli/setup:
   #        profile_name: default
 
-  # setup-ssh-key:
-  #   description: "Configure SSH private key for Ansible"
-  #   steps:
-  #     - run:
-  #         name: Setup SSH private key
-  #         command: |
-  #           mkdir -p ~/.ssh
-  #           echo "${ANSIBLE_PRIVATE_KEY}" > ~/.ssh/datadog.pem
-  #           chmod 600 ~/.ssh/datadog.pem
-  #           echo "StrictHostKeyChecking no" >> ~/.ssh/config
-  #           export ANSIBLE_PRIVATE_KEY_FILE=~/.ssh/datadog.pem
-
   setup-ssh-key:
     description: "Configure SSH private key for Ansible"
     steps:
@@ -46,10 +34,22 @@ commands:
           name: Setup SSH private key
           command: |
             mkdir -p ~/.ssh
-            echo "$ANSIBLE_PRIVATE_KEY" | base64 --decode > ~/.ssh/datadog.pem
+            echo "${ANSIBLE_PRIVATE_KEY}" > datadog.pem
             chmod 600 ~/.ssh/datadog.pem
-            echo -e "Host *\n  StrictHostKeyChecking no\n" >> ~/.ssh/config
+            echo "StrictHostKeyChecking no" >> ~/.ssh/config
             export ANSIBLE_PRIVATE_KEY_FILE=~/.ssh/datadog.pem
+
+  # setup-ssh-key:
+  #   description: "Configure SSH private key for Ansible"
+  #   steps:
+  #     - run:
+  #         name: Setup SSH private key
+  #         command: |
+  #           mkdir -p ~/.ssh
+  #           echo "$ANSIBLE_PRIVATE_KEY" | base64 --decode > ~/.ssh/datadog.pem
+  #           chmod 600 ~/.ssh/datadog.pem
+  #           echo -e "Host *\n  StrictHostKeyChecking no\n" >> ~/.ssh/config
+  #           export ANSIBLE_PRIVATE_KEY_FILE=~/.ssh/datadog.pem
 
 
   deploy-datadog:
@@ -76,6 +76,7 @@ commands:
           name: Deploy Datadog agent
           command: |
             # First run with --check to validate changes
+            export ANSIBLE_PRIVATE_KEY_FILE=./datadog.pem
             ansible-playbook playbooks/deploy_datadog.yml \
               -e "datadog_env=<< parameters.environment >>" \
               -e "datadog_api_key=<< parameters.datadog_api_key >>" \
