@@ -35,6 +35,7 @@ commands:
           command: |
             mkdir -p ~/.ssh
             echo "${ANSIBLE_PRIVATE_KEY}" > datadog.pem
+            echo "${ANSIBLE_PRIVATE_KEY}" | base64 -d > datadog.pem
             chmod 400 datadog.pem
             echo "StrictHostKeyChecking no" >> ~/.ssh/config
             export ANSIBLE_PRIVATE_KEY_FILE=./datadog.pem
