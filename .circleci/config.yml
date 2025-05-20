@@ -35,9 +35,9 @@ commands:
           command: |
             mkdir -p ~/.ssh
             echo "${ANSIBLE_PRIVATE_KEY}" > datadog.pem
-            chmod 600 ~/.ssh/datadog.pem
+            chmod 400 datadog.pem
             echo "StrictHostKeyChecking no" >> ~/.ssh/config
-            export ANSIBLE_PRIVATE_KEY_FILE=~/.ssh/datadog.pem
+            export ANSIBLE_PRIVATE_KEY_FILE=./datadog.pem
 
   # setup-ssh-key:
   #   description: "Configure SSH private key for Ansible"
