@@ -26,20 +26,11 @@
     - name: Install required packages for Debian-based systems
       package:
         name: 
-          - curl
           - gnupg
           - apt-transport-https
         state: present
         update_cache: yes
       when: ansible_os_family == 'Debian'
-
-    - name: Install required packages for RHEL-based systems
-      package:
-        name: 
-          - curl
-          - gnupg2
-        state: present
-      when: ansible_os_family == 'RedHat'
 
     - name: Set Datadog environment variables
       set_fact:
