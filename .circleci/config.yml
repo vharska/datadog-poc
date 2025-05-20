@@ -76,16 +76,20 @@ commands:
       - run:
           name: Deploy Datadog agent
           command: |
+            if [ "${CIRCLE_BRANCH}" == "main" ]; then
+              DATADOG_ENV="prod"
+            elif [ "${CIRCLE_BRANCH}" == "qa" ]; then
+              DATADOG_ENV="qa"
+            elif [ "${CIRCLE_BRANCH}" == "dev" ]; then
+              DATADOG_ENV="dev"
+            else
+              DATADOG_ENV="dev"  # Default to dev for other branches
+            fi
             # First run with --check to validate changes
             export ANSIBLE_PRIVATE_KEY_FILE=./datadog.pem
+
             ansible-playbook playbooks/deploy_datadog.yml \
-              -e "datadog_env=<< parameters.environment >>" \
-              -e "datadog_api_key=<< parameters.datadog_api_key >>" \
-              -e "datadog_site=<< parameters.datadog_site >>" \
-              --check
-            # Actual deployment
-            ansible-playbook playbooks/deploy_datadog.yml \
-              -e "datadog_env=<< parameters.environment >>" \
+              -e ""datadog_env=${DATADOG_ENV}" " \
               -e "datadog_api_key=<< parameters.datadog_api_key >>" \
               -e "datadog_site=<< parameters.datadog_site >>"
           no_output_timeout: 30m
