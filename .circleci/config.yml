@@ -27,6 +27,18 @@ commands:
   #     - aws-cli/setup:
   #        profile_name: default
 
+  # setup-ssh-key:
+  #   description: "Configure SSH private key for Ansible"
+  #   steps:
+  #     - run:
+  #         name: Setup SSH private key
+  #         command: |
+  #           mkdir -p ~/.ssh
+  #           echo "${ANSIBLE_PRIVATE_KEY}" > ~/.ssh/datadog.pem
+  #           chmod 600 ~/.ssh/datadog.pem
+  #           echo "StrictHostKeyChecking no" >> ~/.ssh/config
+  #           export ANSIBLE_PRIVATE_KEY_FILE=~/.ssh/datadog.pem
+
   setup-ssh-key:
     description: "Configure SSH private key for Ansible"
     steps:
@@ -34,10 +46,11 @@ commands:
           name: Setup SSH private key
           command: |
             mkdir -p ~/.ssh
-            echo "${ANSIBLE_PRIVATE_KEY}" > ~/.ssh/datadog.pem
+            echo "$ANSIBLE_PRIVATE_KEY" | base64 --decode > ~/.ssh/datadog.pem
             chmod 600 ~/.ssh/datadog.pem
-            echo "StrictHostKeyChecking no" >> ~/.ssh/config
+            echo -e "Host *\n  StrictHostKeyChecking no\n" >> ~/.ssh/config
             export ANSIBLE_PRIVATE_KEY_FILE=~/.ssh/datadog.pem
+
 
   deploy-datadog:
     description: "Deploy Datadog agent to specified environment"
